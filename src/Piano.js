@@ -5,6 +5,8 @@ import difference from 'lodash.difference';
 import ControlledPiano from './ControlledPiano';
 import Keyboard from './Keyboard';
 
+const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+
 class Piano extends React.Component {
   static propTypes = {
     noteRange: PropTypes.object.isRequired,
@@ -25,11 +27,14 @@ class Piano extends React.Component {
       }),
     ),
   };
-
   state = {
     activeNotes: this.props.activeNotes || [],
   };
 
+  // constructor(props) {
+  //   super(props);
+  //   this.piano = React.createRef();
+  // }
   componentDidUpdate(prevProps) {
     // Make activeNotes "controllable" by using internal
     // state by default, but allowing prop overrides.
@@ -50,13 +55,14 @@ class Piano extends React.Component {
       if (this.props.onPlayNoteInput) {
         this.props.onPlayNoteInput(midiNumber, { prevActiveNotes: prevState.activeNotes });
       }
+      // console.log('Fired handlePlayNoteInput', midiNumber);
 
       // Don't append note to activeNotes if it's already present
       if (prevState.activeNotes.includes(midiNumber)) {
         return null;
       }
       return {
-        activeNotes: prevState.activeNotes.concat(midiNumber),
+        activeNotes: prevState.activeNotes.concat([midiNumber]),
       };
     });
   };
@@ -65,11 +71,14 @@ class Piano extends React.Component {
     this.setState((prevState) => {
       // Need to be handled inside setState in order to set prevActiveNotes without
       // race conditions.
+      // console.log('Fired handleStopNoteInput', midiNumber);
+
       if (this.props.onStopNoteInput) {
         this.props.onStopNoteInput(midiNumber, { prevActiveNotes: this.state.activeNotes });
       }
       return {
-        activeNotes: prevState.activeNotes.filter((note) => midiNumber !== note),
+        // activeNotes: prevState.activeNotes.filter((note) => midiNumber !== note),
+        activeNotes: prevState.activeNotes.filter((note) => !equals(midiNumber, note)),
       };
     });
   };
@@ -81,6 +90,7 @@ class Piano extends React.Component {
         activeNotes={this.state.activeNotes}
         onPlayNoteInput={this.handlePlayNoteInput}
         onStopNoteInput={this.handleStopNoteInput}
+        ref={this.controlledPiano}
         {...otherProps}
       />
     );

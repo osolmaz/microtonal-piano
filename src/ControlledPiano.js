@@ -3,6 +3,9 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import difference from 'lodash.difference';
 import Keyboard from './Keyboard';
+import range from 'just-range';
+import {MidiNumbers} from 'react-piano';
+// import { getCentValueForNote, getFrequencyForNote } from '../demo/src/noteHelpers';
 
 class ControlledPiano extends React.Component {
   static propTypes = {
@@ -23,31 +26,71 @@ class ControlledPiano extends React.Component {
         midiNumber: PropTypes.number.isRequired,
       }),
     ),
+    // switchValues: PropTypes.arrayOf(
+    //   PropTypes.shape({
+    //     midiNumber: PropTypes.number.isRequired,
+    //     switchVal: PropTypes.number.isRequired,
+    //   }),
+    // ),
   };
 
-  static defaultProps = {
-    renderNoteLabel: ({ keyboardShortcut, midiNumber, isActive, isAccidental }) =>
-      keyboardShortcut ? (
-        <div
-          className={classNames('ReactPiano__NoteLabel', {
-            'ReactPiano__NoteLabel--active': isActive,
-            'ReactPiano__NoteLabel--accidental': isAccidental,
-            'ReactPiano__NoteLabel--natural': !isAccidental,
-          })}
-        >
-          {keyboardShortcut}
-        </div>
-      ) : null,
-  };
+  // static defaultProps = {
+  //   renderNoteLabel: ({ keyboardShortcut, midiNumber, isActive, isAccidental }) => {
+  //     let keyNumber = (midiNumber - 57) % 12;
+  //     if (keyNumber < 0) {
+  //       keyNumber += 12;
+  //     }
+  //     // console(this.po)
+  //     // this.props.tuning.keySteps[keyNumber];
+  //     return (
+  //       <div
+  //         className={classNames('ReactPiano__NoteLabel', {
+  //           'ReactPiano__NoteLabel--active': isActive,
+  //           'ReactPiano__NoteLabel--accidental': isAccidental,
+  //           'ReactPiano__NoteLabel--natural': !isAccidental,
+  //         })}
+  //       >
+  //         {keyNumber} <br />
+  //         {keyboardShortcut ? keyboardShortcut : null}
+  //       </div>
+  //     );
+  //   },
+  // };
 
-  state = {
-    isMouseDown: false,
-    useTouchEvents: false,
+  constructor(props) {
+    super(props);
+    let switchValues = {};
+    // for (let number of this.getMidiNumbers()) {
+    for (let number of range(0, 1000)) {
+      switchValues[number] = 0;
+    }
+    this.state = {
+      isMouseDown: false,
+      useTouchEvents: false,
+      switchValues: switchValues,
+      initialSwitchValues: props.initialSwitchValues,
+    };
+  }
+
+  onSwitchChange = (midiNumber, newVal) => {
+    let newSwitchValues = this.state.switchValues;
+    for (const num in newSwitchValues) {
+      if ((num - midiNumber) % this.props.tuning.keys.length === 0) {
+        newSwitchValues[num] = newVal;
+      }
+    }
+    this.setState({
+      switchValues: newSwitchValues,
+    });
   };
 
   componentDidMount() {
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
+    if (this.props.initialSwitchValues) {
+      this.setSwitchValues(this.props.initialSwitchValues);
+      console.log(this.props.initialSwitchValues);
+    }
   }
 
   componentWillUnmount() {
@@ -62,8 +105,27 @@ class ControlledPiano extends React.Component {
         nextActiveNotes: this.props.activeNotes || [],
       });
     }
+    if (this.state.initialSwitchValues !== this.props.initialSwitchValues) {
+      this.setSwitchValues(this.props.initialSwitchValues);
+      this.setState({ initialSwitchValues: this.props.initialSwitchValues });
+    }
   }
 
+  setSwitchValues(newSwitchValues) {
+    let switchValues = {};
+    for (let number of this.getMidiNumbers()) {
+      switchValues[number] = 0;
+    }
+    for (const [key, value] of Object.entries(newSwitchValues)) {
+      for (let number of this.getMidiNumbers()) {
+        if (key % this.props.tuning.keys.length === number % this.props.tuning.keys.length) {
+          switchValues[number] = value;
+        }
+      }
+    }
+    console.log('SWITCH VALUES:', switchValues);
+    this.setState({ switchValues: switchValues });
+  }
   // This function is responsible for diff'ing activeNotes
   // and playing or stopping notes accordingly.
   handleNoteChanges = ({ prevActiveNotes, nextActiveNotes }) => {
@@ -72,10 +134,19 @@ class ControlledPiano extends React.Component {
     }
     const notesStopped = difference(prevActiveNotes, nextActiveNotes);
     const notesStarted = difference(nextActiveNotes, prevActiveNotes);
+    // console.log('Notes started:', notesStarted);
+    // console.log('Notes stopped:', notesStopped);
     notesStarted.forEach((midiNumber) => {
+      // Check if midiNumber is int and if so, convert it into an array and append a 0
+      if (midiNumber % 1 === 0) {
+        midiNumber = [midiNumber, this.state.switchValues[midiNumber]];
+      }
       this.props.playNote(midiNumber);
     });
     notesStopped.forEach((midiNumber) => {
+      if (midiNumber % 1 === 0) {
+        midiNumber = [midiNumber, this.state.switchValues[midiNumber]];
+      }
       this.props.stopNote(midiNumber);
     });
   };
@@ -98,12 +169,13 @@ class ControlledPiano extends React.Component {
 
   onKeyDown = (event) => {
     // Don't conflict with existing combinations like ctrl + t
-    if (event.ctrlKey || event.metaKey || event.shiftKey) {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.repeat) {
       return;
     }
+    console.log('Pressed', event);
     const midiNumber = this.getMidiNumberForKey(event.key);
     if (midiNumber) {
-      this.onPlayNoteInput(midiNumber);
+      this.onPlayNoteInput([midiNumber, this.state.switchValues[midiNumber]]);
     }
   };
 
@@ -115,7 +187,7 @@ class ControlledPiano extends React.Component {
     // the ctrl/meta/shift check is removed to fix that issue.
     const midiNumber = this.getMidiNumberForKey(event.key);
     if (midiNumber) {
-      this.onStopNoteInput(midiNumber);
+      this.onStopNoteInput([midiNumber, this.state.switchValues[midiNumber]]);
     }
   };
 
@@ -155,8 +227,40 @@ class ControlledPiano extends React.Component {
 
   renderNoteLabel = ({ midiNumber, isActive, isAccidental }) => {
     const keyboardShortcut = this.getKeyForMidiNumber(midiNumber);
-    return this.props.renderNoteLabel({ keyboardShortcut, midiNumber, isActive, isAccidental });
+    const switchVal = this.state.switchValues[midiNumber];
+    // let keyNumber = (midiNumber - 57) % 12;
+    // if (keyNumber < 0) {
+    //   keyNumber += 12;
+    // }
+    const {keyIndex} = MidiNumbers.getKeyIndexOctave(midiNumber, this.props.tuning);
+    let keyStep;
+    let key = this.props.tuning.keys[keyIndex];
+    if (key.step) {
+      keyStep = key.step + switchVal;
+    }
+    let centVal = MidiNumbers.getCentValueForNote(midiNumber, switchVal, this.props.tuning);
+    let freqVal = MidiNumbers.getFrequencyForNote(midiNumber, switchVal, this.props.tuning).toFixed(1);
+
+    return (
+      <div
+        className={classNames('ReactPiano__NoteLabel', {
+          'ReactPiano__NoteLabel--active': isActive,
+          'ReactPiano__NoteLabel--accidental': isAccidental,
+          'ReactPiano__NoteLabel--natural': !isAccidental,
+        })}
+      >
+        {this.props.showSteps ? <div className="text-xs">{keyStep}</div> : null}
+        {this.props.showCents ? <div className="text-xs">{Math.round(centVal)}</div> : null}
+        {this.props.showFrequencies ? <div className="text-xxs">{freqVal}</div> : null}
+        {keyboardShortcut ? keyboardShortcut : null}
+      </div>
+    );
+    // return this.props.renderNoteLabel({ keyboardShortcut, midiNumber, isActive, isAccidental });
   };
+
+  getMidiNumbers() {
+    return range(this.props.noteRange.first, this.props.noteRange.last + 1);
+  }
 
   render() {
     return (
@@ -171,6 +275,8 @@ class ControlledPiano extends React.Component {
           noteRange={this.props.noteRange}
           onPlayNoteInput={this.onPlayNoteInput}
           onStopNoteInput={this.onStopNoteInput}
+          onSwitchChange={this.onSwitchChange}
+          switchValues={this.state.switchValues}
           activeNotes={this.props.activeNotes}
           className={this.props.className}
           disabled={this.props.disabled}
@@ -179,6 +285,7 @@ class ControlledPiano extends React.Component {
           gliss={this.state.isMouseDown}
           useTouchEvents={this.state.useTouchEvents}
           renderNoteLabel={this.renderNoteLabel}
+          tuning={this.props.tuning}
         />
       </div>
     );

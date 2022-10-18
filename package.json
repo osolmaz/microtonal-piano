@@ -70,6 +70,9 @@
     "classnames": "^2.2.6",
     "just-range": "^2.1.0",
     "lodash.difference": "^4.5.0",
-    "prop-types": "^15.6.2"
+    "piano-utils": "^0.1.0",
+    "prop-types": "^15.6.2",
+    "react-range": "^1.8.13",
+    "tinygradient": "^1.1.5"
   }
 }

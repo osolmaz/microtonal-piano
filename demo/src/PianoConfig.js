@@ -29,6 +29,7 @@ function Label(props) {
 class PianoConfig extends React.Component {
   componentDidMount() {
     window.addEventListener('keydown', this.handleKeyDown);
+    // this.onChangeTuning
   }
 
   componentWillUnmount() {
@@ -80,15 +81,60 @@ class PianoConfig extends React.Component {
     });
   };
 
+  onChangeShowSteps = (event) => {
+    this.props.setConfig({
+      showSteps: event.target.checked,
+    });
+  };
+
+  onChangeShowCents = (event) => {
+    this.props.setConfig({
+      showCents: event.target.checked,
+    });
+  };
+
+  onChangeShowFrequencies = (event) => {
+    this.props.setConfig({
+      showFrequencies: event.target.checked,
+    });
+  };
+
+  onChangeTuning = (event) => {
+    this.props.setConfig({
+      tuning: this.props.tuningList.find((tuning) => tuning.name === event.target.value),
+    });
+  };
+
   render() {
     const midiNumbersToNotes = MidiNumbers.NATURAL_MIDI_NUMBERS.reduce((obj, midiNumber) => {
       obj[midiNumber] = MidiNumbers.getAttributes(midiNumber).note;
       return obj;
     }, {});
-    const { noteRange, instrumentName } = this.props.config;
+    const {
+      noteRange,
+      instrumentName,
+      tuningName,
+      showSteps,
+      showCents,
+      showFrequencies,
+    } = this.props.config;
 
     return (
       <div className="form-row">
+        <div className="col-6">
+          <Label>Tuning</Label>
+          <AutoblurSelect
+            className="form-control"
+            value={tuningName}
+            onChange={this.onChangeTuning}
+          >
+            {this.props.tuningList.map((value) => (
+              <option value={value.name} key={value.name}>
+                {value.name}
+              </option>
+            ))}
+          </AutoblurSelect>
+        </div>
         <div className="col-3">
           <Label>First note</Label>
           <AutoblurSelect
@@ -117,6 +163,10 @@ class PianoConfig extends React.Component {
             ))}
           </AutoblurSelect>
         </div>
+        <div className="col-12 mt-2">
+          <Label>Description</Label>
+          <p className="text-muted">{this.props.config.tuning.description}</p>
+        </div>
         <div className="col-6">
           <Label>Instrument</Label>
           <AutoblurSelect
@@ -130,6 +180,45 @@ class PianoConfig extends React.Component {
               </option>
             ))}
           </AutoblurSelect>
+        </div>
+        <div className="col-12">
+          <Label>Display</Label>
+          <div className="form-check">
+            <input
+              className="form-check-input appearance-none h-4 w-4 border border-gray-300 rounded-sm bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
+              type="checkbox"
+              checked={showSteps}
+              onChange={this.onChangeShowSteps}
+              id="showStepsCheckbox"
+            />
+            <label className="form-check-label inline-block" for="showStepsCheckbox">
+              Steps from base note
+            </label>
+          </div>
+          <div className="form-check">
+            <input
+              className="form-check-input appearance-none h-4 w-4 border border-gray-300 rounded-sm bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
+              type="checkbox"
+              checked={showCents}
+              onChange={this.onChangeShowCents}
+              id="showCentsCheckbox"
+            />
+            <label className="form-check-label inline-block" for="showCentsCheckbox">
+              Cents from base note
+            </label>
+          </div>
+          <div className="form-check">
+            <input
+              className="form-check-input appearance-none h-4 w-4 border border-gray-300 rounded-sm bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
+              type="checkbox"
+              checked={showFrequencies}
+              onChange={this.onChangeShowFrequencies}
+              id="showFrequenciesCheckbox"
+            />
+            <label className="form-check-label inline-block" for="showFrequenciesCheckbox">
+              Note frequency
+            </label>
+          </div>
         </div>
         <div className="col mt-2">
           <small className="text-muted">

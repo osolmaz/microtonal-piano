@@ -1,6 +1,6 @@
 {
   "name": "react-piano-demo",
-  "homepage": "https://www.kevinqi.com/react-piano",
+  "homepage": "https://microtonal.xyz",
   "version": "0.1.0",
   "license": "MIT",
   "dependencies": {
@@ -13,6 +13,7 @@
     "react-icons": "^2.2.7",
     "react-piano": "../",
     "react-scripts": "3.3.0",
+    "react-youtube": "^9.0.3",
     "soundfont-player": "^0.10.6"
   },
   "scripts": {

@@ -1,5 +1,9 @@
 import range from 'just-range';
 
+export const CENTS_IN_OCTAVE = 1200;
+export const BASE_MIDI_NOTE_NUMBER = 57;
+export const A440 = 440;
+
 const SORTED_PITCHES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 const ACCIDENTAL_PITCHES = ['Db', 'Eb', 'Gb', 'Ab', 'Bb'];
 const PITCH_INDEXES = {
@@ -91,10 +95,54 @@ const NATURAL_MIDI_NUMBERS = range(MIN_MIDI_NUMBER, MAX_MIDI_NUMBER + 1).filter(
   (midiNumber) => !getAttributes(midiNumber).isAccidental,
 );
 
+function getKeyIndexOctave(keyNumber, tuning) {
+  let midiDistance = keyNumber - BASE_MIDI_NOTE_NUMBER;
+  let nKey = tuning.keys.length;
+  let keyIndex = midiDistance % nKey;
+  if (keyIndex < 0) {
+    keyIndex = keyIndex + nKey;
+  }
+  let octave = Math.floor(midiDistance / nKey);
+  return { keyIndex, octave };
+}
+
+function getCentValueForNote(note, switchVal, tuning) {
+  let midiDistance = note - BASE_MIDI_NOTE_NUMBER;
+  let nKey = tuning.keys.length;
+
+  let key = midiDistance % nKey;
+  if (key < 0) {
+    key = key + nKey;
+  }
+  let centValue = tuning.keys[key].pitch + switchVal * tuning.switchInterval;
+  return centValue;
+}
+
+function getMidiNumberForNote(note, switchVal, tuning) {
+  let midiDistance = note - BASE_MIDI_NOTE_NUMBER;
+  let nKey = tuning.keys.length;
+
+  let octaves = Math.floor(midiDistance / nKey);
+  let centValue = getCentValueForNote(note, switchVal, tuning);
+  let midiNumber = BASE_MIDI_NOTE_NUMBER + octaves * 12 + centValue / 100;
+  return midiNumber;
+}
+
+function getFrequencyForNote(note, switchVal, tuning) {
+  let midi_number = getMidiNumberForNote(note, switchVal, tuning);
+  let nKey = tuning.keys.length;
+
+  return A440 * Math.pow(2, (midi_number - BASE_MIDI_NOTE_NUMBER) / nKey);
+}
+
 export default {
   fromNote,
   getAttributes,
   MIN_MIDI_NUMBER,
   MAX_MIDI_NUMBER,
   NATURAL_MIDI_NUMBERS,
+  getKeyIndexOctave,
+  getCentValueForNote,
+  getMidiNumberForNote,
+  getFrequencyForNote,
 };

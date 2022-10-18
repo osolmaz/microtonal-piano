@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/microtonal-piano/static/css/main.b6a2175e.chunk.css",
+    "main.js": "/microtonal-piano/static/js/main.ca091a48.chunk.js",
+    "main.js.map": "/microtonal-piano/static/js/main.ca091a48.chunk.js.map",
+    "runtime-main.js": "/microtonal-piano/static/js/runtime-main.0751daad.js",
+    "runtime-main.js.map": "/microtonal-piano/static/js/runtime-main.0751daad.js.map",
+    "static/js/2.ac0d7597.chunk.js": "/microtonal-piano/static/js/2.ac0d7597.chunk.js",
+    "static/js/2.ac0d7597.chunk.js.map": "/microtonal-piano/static/js/2.ac0d7597.chunk.js.map",
+    "index.html": "/microtonal-piano/index.html",
+    "precache-manifest.31749b1fec1cc837e10afe8e8d8dcec2.js": "/microtonal-piano/precache-manifest.31749b1fec1cc837e10afe8e8d8dcec2.js",
+    "service-worker.js": "/microtonal-piano/service-worker.js",
+    "static/css/main.b6a2175e.chunk.css.map": "/microtonal-piano/static/css/main.b6a2175e.chunk.css.map",
+    "static/js/2.ac0d7597.chunk.js.LICENSE": "/microtonal-piano/static/js/2.ac0d7597.chunk.js.LICENSE"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.0751daad.js",
+    "static/js/2.ac0d7597.chunk.js",
+    "static/css/main.b6a2175e.chunk.css",
+    "static/js/main.ca091a48.chunk.js"
+  ]
+}

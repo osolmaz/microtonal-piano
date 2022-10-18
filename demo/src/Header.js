@@ -5,9 +5,9 @@ function Header() {
     <div style={{ background: '#333' }}>
       <div className="container">
         <div className="text-sm-center text-white py-5">
-          <h1>microtonal.xyz</h1>
+          <h1>Microtonal Piano</h1>
           <p>
-            A Microtonal Piano/Keyboard Inspired by the{' '}
+            A Digital Instrument Inspired by the{' '}
             <a target="_blank" href="https://en.wikipedia.org/wiki/Qanun_(instrument)">
               Kanun
             </a>
